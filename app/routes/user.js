@@ -10,7 +10,7 @@ router.get('/findAll', find)
 router.get('/findUser/:id', findById)
 
 router.post('/create', create)
-router.put('/update/:id', update)
+router.patch('/update/:id', update)
 router.delete('/delete/:id', deleteUser)
 
 
