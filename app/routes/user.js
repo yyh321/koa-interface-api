@@ -1,24 +1,44 @@
-const Router = require('koa-router')
-const { topic, create, find, findById, update, deleteUser,login} = require('../controllers/users')
+const Router = require("koa-router");
+const jsonwebtoken = require("jsonwebtoken");
+const { secret } = require("../config");
+const {
+  topic,
+  create,
+  find,
+  findById,
+  update,
+  deleteUser,
+  login,
+  checkOwner
+} = require("../controllers/users");
 
-const router = new Router({prefix: '/user'})
+const router = new Router({ prefix: "/user" });
 
-router.get('/topic', topic)
+// 用户认证
+const auth = async (ctx, next) => {
+  const { authorization = "" } = ctx.request.header;
+  const token = authorization.replace("Bearer ", "");
 
-router.get('/findAll', find)
+  try {
+    // 捕获401未认证错误
+    const user = jsonwebtoken.verify(token, secret);
+    ctx.state.user = user;
+  } catch (err) {
+    ctx.throw(401, err.message);
+  }
 
-router.get('/findUser/:id', findById)
+  await next();
+};
 
-router.post('/create', create)
-router.patch('/update/:id', update)
-router.delete('/delete/:id', deleteUser)
-router.post('/login',login)
+router.get("/topic", topic);
 
+router.get("/findAll", find);
 
-module.exports = router
+router.get("/findUser/:id", findById);
 
+router.post("/create", create);
+router.patch("/update/:id", auth, checkOwner, update);
+router.delete("/delete/:id", auth, checkOwner, deleteUser);
+router.post("/login", login);
 
-
-
-
-
+module.exports = router;
